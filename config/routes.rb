@@ -3,5 +3,6 @@ Rails.application.routes.draw do
 
   scope 'v1' do
     post 'create', to: 'api#create_user'
+    post 'login', to: 'api#login'
   end
 end

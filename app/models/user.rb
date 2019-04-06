@@ -4,13 +4,13 @@ class User
   include BCrypt
 
   def initialize(id)
-    e = DB.query("SELECT * FROM `tempo_users` WHERE `userid` = #{id}").each {}
+    e = DB.query("SELECT * FROM `tempo_users` WHERE `id` = #{id}").each {}
 
     @userid = id
     if e.empty?
       @registered = false
       @raw = nil
-      @username = Discord.user(id).distinct
+      @username = nil
       @password = nil
       @email = nil
       @phone = nil
@@ -39,27 +39,14 @@ class User
   alias_method :registered?, :registered
   attr_reader :raw
   attr_reader :username
-  attr_reader :verified
-  alias_method :verified?, :verified
-  attr_reader :staff
-  alias_method :staff?, :staff
-  attr_reader :pro
-  alias_method :pro?, :pro
-  attr_reader :bio
+  attr_reader :email
+  attr_reader :phone
   attr_reader :fcm_token
   attr_reader :userid
   alias_method :id, :userid
 
   def password
-    Password.new(DB.query("SELECT `password` FROM `tempo_users` WHERE `userid` = #{@userid}").each {}[0]['password'])
-  end
-
-  def custom_username?
-    return false if @username.nil?
-    return false if @username.include?('#')
-    return false if @username == ''
-
-    true
+    Password.new(DB.query("SELECT `password` FROM `tempo_users` WHERE `id` = #{@userid}").each {}[0]['password'])
   end
 
   def password_set?
@@ -70,14 +57,14 @@ class User
 
   def password=(pass)
     @password = Password.create(pass)
-    l = DB.query("UPDATE `tempo_users` SET `password` = '#{@password}' WHERE `tempo_users`.`userid` = #{@userid};")
+    l = DB.query("UPDATE `tempo_users` SET `password` = '#{@password}' WHERE `tempo_users`.`id` = #{@userid};")
     true
   rescue StandardError
     false
   end
 
   def username=(name)
-    l = DB.query("UPDATE `tempo_users` SET `username` = '#{name}' WHERE `tempo_users`.`userid` = #{@userid};")
+    l = DB.query("UPDATE `tempo_users` SET `username` = '#{name}' WHERE `tempo_users`.`id` = #{@userid};")
     @username = name
     true
   rescue StandardError

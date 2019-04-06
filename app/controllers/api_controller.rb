@@ -80,7 +80,7 @@ class ApiController < ApplicationController
       json_response(JSON.parse('{"error": "Invalid credentials"}'), 401)
       return
     end
-    user = User.new(e[0]['userid'])
+    user = User.new(e[0]['id'])
 
     unless user.password_set?
       json_response(JSON.parse('{"error": "Invalid credentials"}'), 401)
@@ -93,7 +93,7 @@ class ApiController < ApplicationController
         o = [('a'..'z'), ('A'..'Z')].map(&:to_a).flatten
         string = (0...50).map { o[rand(o.length)] }.join
         key = string
-        DB.query("UPDATE `memerator_logins` SET `auth_token` = '#{string}' WHERE `userid` = #{e[0]['userid']}")
+        DB.query("UPDATE `tempo_users` SET `auth_token` = '#{string}' WHERE `id` = #{e[0]['userid']}")
       else
         key = e[0]['auth_token']
       end
