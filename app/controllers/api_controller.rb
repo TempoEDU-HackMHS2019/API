@@ -126,7 +126,7 @@ class ApiController < ApplicationController
     # Define parameters we need for later
     name = params['name']
     description = params['description']
-    duedate = params['duedate']
+    duedate = Time.parse(params['duedate']).to_datetime.to_s.gsub('T', ' ').gsub('+00:00', '')
     parent = params['parent_id'] || 0
     difficulty = params['difficulty']
     type = params['type']
