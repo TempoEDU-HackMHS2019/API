@@ -4,5 +4,11 @@ Rails.application.routes.draw do
   scope 'v1' do
     post 'create', to: 'api#create_user'
     post 'login', to: 'api#login'
+    scope 'event' do
+      post 'create', to: 'api#add_event'
+      get 'all', to: 'api#get_events'
+      delete ':id', to: 'api#delete_event'
+      get ':id', to: 'api#get_event'
+    end
   end
 end
