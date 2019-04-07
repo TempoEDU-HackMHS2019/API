@@ -277,10 +277,34 @@ class ApiController < ApplicationController
     # Store user variable for later use.
     user = auth_user(request.headers['Authorization'])
 
+    # Get all events from the user and return.
+    event = DB.query("SELECT * FROM `tempo_event` WHERE `owner_id` = '#{user.id}'").each {}
+
+    difficulty = []
+
+    event.each do |ev|
+      difficulty.push ev['difficulty'].to_i
+    end
+
+    output = {
+      "total": difficulty.sum,
+      "amount": difficulty.length,
+      "average": difficulty.sum / difficulty.length.to_f
+    }
+
+    hotbar = 0
+
+    if difficulty.sum < 5
+      hotbar = difficulty.sum / 5
+    else
+      hotbar = difficulty.length * difficulty.sum / (difficulty.length + difficulty.sum)
+    end
+
     # Gather small user info and return.
     output = {
       "id" => user.id,
-      "username" => user.username
+      "username" => user.username,
+      "hotbar" => hotbar
     }
 
     json_response(output.as_json, 200)
@@ -366,7 +390,6 @@ class ApiController < ApplicationController
       "amount": difficulty.length,
       "average": difficulty.sum / difficulty.length.to_f
     }
-
     json_response(output.as_json, 200)
   end
 end
