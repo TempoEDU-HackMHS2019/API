@@ -246,4 +246,26 @@ class ApiController < ApplicationController
 
     json_response({"success": true}.as_json, 200)
   end
+
+  def profile
+    # Check to see if the user is authenticated. Otherwise, bye bye.
+    begin
+      unless authenticated?(request.headers['Authorization'])
+        json_response({"error": "Auth not valid"}.as_json, 401)
+        return
+      end
+    rescue Mysql2::Error
+      json_response({"error": "You are going too fast"}.as_json, 429)
+      return
+    end
+
+    user = auth_user(request.headers['Authorization'])
+
+    output = {
+      "id" => user.id,
+      "username" => user.username
+    }
+
+    json_response(output.as_json, 200)
+  end
 end

@@ -10,5 +10,6 @@ Rails.application.routes.draw do
       delete ':id', to: 'api#delete_event'
       get ':id', to: 'api#get_event'
     end
+    get 'profile', to: 'api#profile'
   end
 end
