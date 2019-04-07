@@ -11,6 +11,7 @@ Rails.application.routes.draw do
       get ':id', to: 'api#get_event'
       get ':id/children', to: 'api#children'
     end
+    get 'hotbar', to: 'api#total_difficulty'
     get 'profile', to: 'api#profile'
   end
 end

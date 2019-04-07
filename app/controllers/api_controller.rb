@@ -337,4 +337,36 @@ class ApiController < ApplicationController
 
     json_response(output.as_json, 200)
   end
+
+  def total_difficulty
+    begin
+      unless authenticated?(request.headers['Authorization'])
+        json_response({"error": "Auth not valid"}.as_json, 401)
+        return
+      end
+    rescue Mysql2::Error
+      json_response({"error": "You are going too fast"}.as_json, 429)
+      return
+    end
+
+    # Store user variable for later use
+    user = auth_user(request.headers['Authorization'])
+
+    # Get all events from the user and return.
+    event = DB.query("SELECT * FROM `tempo_event` WHERE `owner_id` = '#{user.id}'").each {}
+
+    difficulty = []
+
+    event.each do |ev|
+      difficulty.push ev['difficulty'].to_i
+    end
+
+    output = {
+      "total": difficulty.sum,
+      "amount": difficulty.length,
+      "average": difficulty.sum / difficulty.length.to_f
+    }
+
+    json_response(output.as_json, 200)
+  end
 end
