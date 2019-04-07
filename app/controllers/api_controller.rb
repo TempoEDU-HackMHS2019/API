@@ -142,7 +142,9 @@ class ApiController < ApplicationController
 
     DB.query("INSERT INTO `tempo_event` (`owner_id`, `name`, `description`, `difficulty`, `due`, `parent_id`, `type`) VALUES ('#{user.id}', \"#{name}\", \"#{description}\", '#{difficulty}', '#{duedate}', '#{parent}', '#{type}')")
 
-    json_response({"success": true}.as_json, 201)
+    re = DB.query("SELECT * FROM `tempo_event` WHERE `name` = \"#{name}\" AND `owner_id` = '#{user.id}'").each {}[0]
+
+    json_response({"success": true, "id": re['id']}.as_json, 201)
   end
 
   def get_event
