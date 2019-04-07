@@ -11,11 +11,7 @@ class ApiController < ApplicationController
   def authenticated?(key)
     return false if key == '' || key.nil?
 
-    results = []
-    query = DB.query("SELECT * FROM `tempo_users` WHERE `auth_token` = '#{key}'")
-    query.each do |e|
-      results.push e
-    end
+    results = DB.query("SELECT * FROM `tempo_users` WHERE `auth_token` = '#{key}'").each {}
     results.length.positive?
   end
 
@@ -109,6 +105,7 @@ class ApiController < ApplicationController
     end
   end
 
+  # Method to create an event
   def add_event
     # Check to see if the user is authenticated. Otherwise, bye bye.
     begin
@@ -121,6 +118,7 @@ class ApiController < ApplicationController
       return
     end
 
+    # Save the user to a variable we will use later.
     user = auth_user(request.headers['Authorization'])
 
     # Define parameters we need for later
@@ -131,15 +129,18 @@ class ApiController < ApplicationController
     difficulty = params['difficulty']
     type = params['type']
 
+    # Sanitize our beautiful, now unhackable code.
     name = name.gsub('"', '\\"')
     description = description.gsub('"', '\\"')
 
+    # Do not allow 2 events with the same name to be created.
     re = DB.query("SELECT * FROM `tempo_event` WHERE `name` = \"#{name}\" AND `owner_id` = '#{user.id}'").each {}
     unless re.empty?
       json_response({"error": "An event with this name exists, sorry bucko."}.as_json, 400)
       return
     end
 
+    # Save new event and tell user about it.
     DB.query("INSERT INTO `tempo_event` (`owner_id`, `name`, `description`, `difficulty`, `due`, `parent_id`, `type`) VALUES ('#{user.id}', \"#{name}\", \"#{description}\", '#{difficulty}', '#{duedate}', '#{parent}', '#{type}')")
 
     re = DB.query("SELECT * FROM `tempo_event` WHERE `name` = \"#{name}\" AND `owner_id` = '#{user.id}'").each {}[0]
@@ -147,6 +148,7 @@ class ApiController < ApplicationController
     json_response({"success": true, "id": re['id']}.as_json, 201)
   end
 
+  # Method to get an event.
   def get_event
     # Check to see if the user is authenticated. Otherwise, bye bye.
     begin
@@ -159,11 +161,13 @@ class ApiController < ApplicationController
       return
     end
 
+    # Store user variable for later use.
     user = auth_user(request.headers['Authorization'])
 
     # Define parameters we need for later
     id = params['id']
 
+    # Get event by ID, only continue if owner is authed user.
     event = DB.query("SELECT * FROM `tempo_event` WHERE `id` = '#{id}' AND `owner_id` = '#{user.id}'").each {}
     if event.empty?
       json_response({"error": "no events exist with this id"}.as_json, 400)
@@ -172,6 +176,7 @@ class ApiController < ApplicationController
 
     event = event[0]
 
+    # Sum up the data and return
     output = {
       "id": event['id'],
       "name": event['name'],
@@ -185,6 +190,7 @@ class ApiController < ApplicationController
     json_response(output.as_json, 200)
   end
 
+  # Method to get all the events.
   def get_events
     # Check to see if the user is authenticated. Otherwise, bye bye.
     begin
@@ -197,8 +203,10 @@ class ApiController < ApplicationController
       return
     end
 
+    # Store user variable for later use
     user = auth_user(request.headers['Authorization'])
 
+    # Get all events from the user and return.
     event = DB.query("SELECT * FROM `tempo_event` WHERE `owner_id` = '#{user.id}'").each {}
 
     output = []
@@ -219,6 +227,7 @@ class ApiController < ApplicationController
     json_response(output.as_json, 200)
   end
 
+  # Method to delete an event!!!
   def delete_event
     # Check to see if the user is authenticated. Otherwise, bye bye.
     begin
@@ -231,11 +240,13 @@ class ApiController < ApplicationController
       return
     end
 
+    # Store user variable for later use.
     user = auth_user(request.headers['Authorization'])
 
     # Define parameters we need for later
     id = params['id']
 
+    # Find the event the user is looking for.
     event = DB.query("SELECT * FROM `tempo_event` WHERE `id` = '#{id}' AND `owner_id` = '#{user.id}'").each {}
     if event.empty?
       json_response({"error": "no events exist with this id"}.as_json, 400)
@@ -244,11 +255,13 @@ class ApiController < ApplicationController
 
     event = event[0]
 
+    # DELETE IT OWO
     event = DB.query("DELETE FROM `tempo_event` WHERE `tempo_event`.`id` = #{event['id']}")
 
     json_response({"success": true}.as_json, 200)
   end
 
+  # Method to see some of user profile
   def profile
     # Check to see if the user is authenticated. Otherwise, bye bye.
     begin
@@ -261,8 +274,10 @@ class ApiController < ApplicationController
       return
     end
 
+    # Store user variable for later use.
     user = auth_user(request.headers['Authorization'])
 
+    # Gather small user info and return.
     output = {
       "id" => user.id,
       "username" => user.username
@@ -271,6 +286,7 @@ class ApiController < ApplicationController
     json_response(output.as_json, 200)
   end
 
+  # Find events with parent_id of specified
   def children
     # Check to see if the user is authenticated. Otherwise, bye bye.
     begin
@@ -283,11 +299,13 @@ class ApiController < ApplicationController
       return
     end
 
+    # Store user variable for later use.
     user = auth_user(request.headers['Authorization'])
 
     # Define parameters we need for later
     id = params['id']
 
+    # Get all events with the parent ID specified.
     event = DB.query("SELECT * FROM `tempo_event` WHERE `parent_id` = '#{id}' AND `owner_id` = '#{user.id}'").each {}
     if event.empty?
       json_response({"error": "no events exist with this id"}.as_json, 400)
@@ -296,6 +314,7 @@ class ApiController < ApplicationController
 
     output = []
 
+    # Gather into one array and return.
     event.each do |ev|
       f = {
         "id" => ev['id'].to_i,
