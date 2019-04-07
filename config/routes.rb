@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       get 'all', to: 'api#get_events'
       delete ':id', to: 'api#delete_event'
       get ':id', to: 'api#get_event'
+      get ':id/children', to: 'api#children'
     end
     get 'profile', to: 'api#profile'
   end

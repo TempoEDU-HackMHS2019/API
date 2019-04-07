@@ -270,4 +270,45 @@ class ApiController < ApplicationController
 
     json_response(output.as_json, 200)
   end
+
+  def children
+    # Check to see if the user is authenticated. Otherwise, bye bye.
+    begin
+      unless authenticated?(request.headers['Authorization'])
+        json_response({"error": "Auth not valid"}.as_json, 401)
+        return
+      end
+    rescue Mysql2::Error
+      json_response({"error": "You are going too fast"}.as_json, 429)
+      return
+    end
+
+    user = auth_user(request.headers['Authorization'])
+
+    # Define parameters we need for later
+    id = params['id']
+
+    event = DB.query("SELECT * FROM `tempo_event` WHERE `parent_id` = '#{id}' AND `owner_id` = '#{user.id}'").each {}
+    if event.empty?
+      json_response({"error": "no events exist with this id"}.as_json, 400)
+      return
+    end
+
+    output = []
+
+    event.each do |ev|
+      f = {
+        "id" => ev['id'].to_i,
+        "name" => ev['name'],
+        "description" => ev['description'],
+        "duedate" => ev['due'],
+        "parent" => ev['parent_id'].to_i,
+        "difficulty" => ev['difficulty'].to_i,
+        "type" => ev['type'].to_i
+      }
+      output.push f
+    end
+
+    json_response(output.as_json, 200)
+  end
 end
