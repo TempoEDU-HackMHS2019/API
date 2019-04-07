@@ -305,10 +305,17 @@ class ApiController < ApplicationController
     # Define parameters we need for later
     id = params['id']
 
+    # Get event to see if it exists.
+    event = DB.query("SELECT * FROM `tempo_event` WHERE `id` = '#{id}' AND `owner_id` = '#{user.id}'").each {}
+    if event.empty?
+      json_response({"error": "this event does not exist"}.as_json, 400)
+      return
+    end
+
     # Get all events with the parent ID specified.
     event = DB.query("SELECT * FROM `tempo_event` WHERE `parent_id` = '#{id}' AND `owner_id` = '#{user.id}'").each {}
     if event.empty?
-      json_response({"error": "no events exist with this id"}.as_json, 400)
+      json_response({"error": "no child events exist with this id"}.as_json, 400)
       return
     end
 
